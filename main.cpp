@@ -1,82 +1,37 @@
-// compile with: clang++ main.cpp -o image_exmple -lSDL2 -lSDL2_image
-#include <SDL.h>
-#include <SDL_image.h>
-#include <cstdio>
-#include <string>
+///////////////////////////////////////
+// main.cpp
 
-#define SCREEN_WIDTH 640
-#define SCREEN_HEIGHT 480
+#include "wxx_wincore.h"
 
-SDL_Window *window = NULL;
-SDL_Surface *screenSurface = NULL;
-bool quit = false;
-    SDL_Event event;
+// Note:
+//  * Add the Win32++\include  directory to project's additional include directories.
 
-static bool init() {
-  if (SDL_Init(SDL_INIT_VIDEO) < 0) {
-    fprintf(stderr, "could not initialize sdl2: %s\n", SDL_GetError());
-    return false;
-  }
-  if (!(IMG_Init(IMG_INIT_PNG) & IMG_INIT_PNG)) {
-    fprintf(stderr, "could not initialize sdl2_image: %s\n", IMG_GetError());
-    return false;
-  }
-  window = SDL_CreateWindow("SDL ALPHA OPAQUE",
 
-			    SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			    SCREEN_WIDTH, SCREEN_HEIGHT,
-			    SDL_WINDOW_SHOWN
-			    );
-  if (window == NULL) {
-    fprintf(stderr, "could not create window: %s\n", SDL_GetError());
-    return false;
-  }
-  screenSurface = SDL_GetWindowSurface(window);
-  if (screenSurface == NULL) {
-    fprintf(stderr, "could not get window: %s\n", SDL_GetError());
-    return false;
-  }
-  return true;
+//////////////////////////////////////////////
+// CMyWindow is the application's main window.
+class CMyWindow : public CWnd
+{
+public:
+    CMyWindow() = default;
+    virtual void OnDestroy() override { PostQuitMessage(0); }    // End the program.
+    virtual ~CMyWindow() override = default;
+};
+
+
+// WinMain is the program's entry point. The program starts here.
+int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
+{
+    // Start Win32++.
+    CWinApp theApp;
+
+    // Create a CMyWindow object.
+    CMyWindow myWindow;
+
+    // Create (and display) the window.
+    myWindow.Create();
+
+    // Run the application's message loop.
+    return theApp.Run();
 }
 
-static SDL_Surface* loadImage(std::string path) {
-  SDL_Surface* img = IMG_Load(path.c_str());
-  if (img == NULL) {
-    fprintf(stderr, "could not load image: %s\n", IMG_GetError());
-    return NULL;
-  }
-  SDL_Surface* optimizedImg = SDL_ConvertSurface(img, screenSurface->format, 0);
-  if (optimizedImg == NULL) fprintf(stderr, "could not optimize image: %s\n", SDL_GetError());
-  SDL_FreeSurface(img);
-  return optimizedImg;
-}
 
-static void close() {
-  SDL_FreeSurface(screenSurface); screenSurface = NULL;
-  SDL_DestroyWindow(window); window = NULL;
-  SDL_Quit();
-}
-
-int main(int argc, char* args[]) {
-  if (!init()) return 1;
-  SDL_Surface* img = loadImage("pic.png");
-  if (img == NULL) return 1;
-
-  while (!quit)
-    {
-       SDL_WaitEvent(&event);
-
-       switch(event.type)
-       {
-       case SDL_QUIT:
-           quit = true;
-           break;
-       }
-
-  SDL_BlitSurface(img, NULL, screenSurface, NULL);
-  SDL_UpdateWindowSurface(window);
-
-  SDL_FreeSurface(img); img = NULL;
-    }
-  return 0;
-}
