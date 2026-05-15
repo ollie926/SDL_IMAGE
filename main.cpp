@@ -1,37 +1,68 @@
-///////////////////////////////////////
-// main.cpp
+#include <SDL.h>
 
-#include "wxx_wincore.h"
-
-// Note:
-//  * Add the Win32++\include  directory to project's additional include directories.
-
-
-//////////////////////////////////////////////
-// CMyWindow is the application's main window.
-class CMyWindow : public CWnd
+int main(int argc, char ** argv)
 {
-public:
-    CMyWindow() = default;
-    virtual void OnDestroy() override { PostQuitMessage(0); }    // End the program.
-    virtual ~CMyWindow() override = default;
-};
+    // variables
 
 
-// WinMain is the program's entry point. The program starts here.
-int WINAPI wWinMain(HINSTANCE, HINSTANCE, LPWSTR, int)
-{
-    // Start Win32++.
-    CWinApp theApp;
+    bool quit = false;
+    SDL_Event event;
+    int x = 288;
+    int y = 208;
 
-    // Create a CMyWindow object.
-    CMyWindow myWindow;
 
-    // Create (and display) the window.
-    myWindow.Create();
+    // init SDL
 
-    // Run the application's message loop.
-    return theApp.Run();
+    SDL_Init(SDL_INIT_VIDEO);
+    SDL_Window * window = SDL_CreateWindow("SDL2 Keyboard/Mouse events",
+        SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
+    SDL_Renderer * renderer = SDL_CreateRenderer(window, -1, 0);
+
+    SDL_Surface * image = SDL_LoadBMP("spi.bmp");
+
+    SDL_Texture * texture = SDL_CreateTextureFromSurface(renderer,
+        image);
+    SDL_FreeSurface(image);
+
+SDL_SetRenderDrawColor(renderer,0, 0, 0, 0);
+
+
+
+    // handle events
+
+    while (!quit)
+    {SDL_Delay(1);
+       SDL_PollEvent(&event);
+
+        switch (event.type)
+        {
+        case SDL_QUIT:
+         case SDL_KEYDOWN:
+    switch (event.key.keysym.sym)
+    {
+        case SDLK_LEFT:  x--; break;
+        case SDLK_RIGHT: x++; break;
+        case SDLK_UP:    y--; break;
+        case SDLK_DOWN:  y++; break;
+    }
+    break;
+            quit = true;
+            break;
+        }
+
+        SDL_Rect dstrect = { x, y, 30, 30 };
+
+        SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, texture, NULL, &dstrect);
+        SDL_RenderPresent(renderer);
+    }
+
+
+
+
+    SDL_DestroyTexture(texture);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(window);
+    SDL_Quit();
+
 }
-
-
